@@ -1,23 +1,11 @@
 -- Forever Kit. The ! in the folder name loads this before other addons, so
 -- each character's layout is in place before Bartender4, SexyMap, and Questie
--- read their settings. It runs once per character. /forever runs it again.
+-- read their settings. The layout runs once per character, and /forever runs
+-- it again. Binds and game settings live in Config.lua and Personal.lua, and
+-- apply at login whenever they change.
 
 local PROFILE = "Forever Kit"
 local VERSION = 1
-
-local BINDS = {
-	A = "STRAFELEFT", D = "STRAFERIGHT",
-	["1"] = "ACTIONBUTTON1", ["2"] = "ACTIONBUTTON2", ["3"] = "ACTIONBUTTON3",
-	["4"] = "ACTIONBUTTON4", ["5"] = "ACTIONBUTTON5", ["6"] = "ACTIONBUTTON6",
-	Q = "ACTIONBUTTON7", E = "ACTIONBUTTON8", R = "ACTIONBUTTON9",
-	F = "ACTIONBUTTON10", C = "ACTIONBUTTON11", V = "ACTIONBUTTON12",
-	G = "MULTIACTIONBAR1BUTTON1", Z = "MULTIACTIONBAR1BUTTON2", X = "MULTIACTIONBAR1BUTTON3",
-	Y = "MULTIACTIONBAR1BUTTON4", H = "MULTIACTIONBAR1BUTTON5", ["`"] = "MULTIACTIONBAR1BUTTON6",
-	["SHIFT-1"] = "MULTIACTIONBAR1BUTTON7", ["SHIFT-2"] = "MULTIACTIONBAR1BUTTON8",
-	["SHIFT-3"] = "MULTIACTIONBAR1BUTTON9", ["SHIFT-4"] = "MULTIACTIONBAR1BUTTON10",
-	["SHIFT-5"] = "MULTIACTIONBAR1BUTTON11", ["SHIFT-6"] = "MULTIACTIONBAR1BUTTON12",
-	T = "INTERACTTARGET", ["SHIFT-C"] = "TOGGLECHARACTER0", ["SHIFT-R"] = "REPLY",
-}
 
 local function charKey(separator)
 	local name, surname = UnitNameUnmodified("player")
@@ -125,12 +113,25 @@ local function seedQuestie()
 	QuestieConfig.profiles.Default.TrackerLocation = { "TOPRIGHT", "UIParent", "TOPRIGHT", -14, -300 }
 end
 
-local function applyBinds()
-	for key, action in pairs(BINDS) do
-		SetBinding(key, action)
+local function signature()
+	local parts = {}
+	for _, group in ipairs({ "binds", "cvars" }) do
+		for key, value in pairs(ForeverKitConfig[group]) do
+			parts[#parts + 1] = group .. ":" .. key .. "=" .. tostring(value)
+		end
+	end
+	table.sort(parts)
+	return table.concat(parts, ";")
+end
+
+local function applySettings()
+	for key, action in pairs(ForeverKitConfig.binds) do
+		SetBinding(key, action or nil)
 	end
 	SaveBindings(GetCurrentBindingSet())
-	SetCVar("cameraSmoothStyle", 0)
+	for name, value in pairs(ForeverKitConfig.cvars) do
+		SetCVar(name, value)
+	end
 end
 
 local seeders = { Bartender4 = seedBartender, SexyMap = seedSexyMap, Questie = seedQuestie }
@@ -140,10 +141,15 @@ frame:RegisterEvent("ADDON_LOADED")
 frame:RegisterEvent("PLAYER_LOGIN")
 frame:SetScript("OnEvent", function(_, event, name)
 	if event == "PLAYER_LOGIN" then
+		local current = signature()
+		if fresh or ForeverKitChar.settings ~= current then
+			applySettings()
+			ForeverKitChar.settings = current
+			print("|cff33ff99Forever Kit:|r your keys and settings are up to date.")
+		end
 		if fresh then
-			applyBinds()
 			ForeverKitChar.version = VERSION
-			print("|cff33ff99Forever Kit:|r your bars, minimap, and keys are set.")
+			print("|cff33ff99Forever Kit:|r your bars and minimap are set.")
 		end
 	elseif name == "!ForeverKit" then
 		ForeverKitChar = ForeverKitChar or {}

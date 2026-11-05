@@ -4,4 +4,6 @@
 ## Version: 1
 ## SavedVariablesPerCharacter: ForeverKitChar
 
+Config.lua
+Personal.lua
 ForeverKit.lua

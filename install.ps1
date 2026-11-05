@@ -143,9 +143,11 @@ try {
     }
     $kit = Join-Path $addons '!ForeverKit'
     New-Item -ItemType Directory -Force -Path $kit | Out-Null
-    foreach ($name in '!ForeverKit.toc', 'ForeverKit.lua') {
+    foreach ($name in '!ForeverKit.toc', 'Config.lua', 'ForeverKit.lua') {
         Invoke-WebRequest -UseBasicParsing -UserAgent $Agent -Uri "$Raw/!ForeverKit/$name" -OutFile (Join-Path $kit $name)
     }
+    $personal = Join-Path $kit 'Personal.lua'
+    if (-not (Test-Path $personal)) { Set-Content -Path $personal -Value '-- Your own overrides.' }
 } finally {
     Remove-Item -Recurse -Force $work -ErrorAction SilentlyContinue
 }
