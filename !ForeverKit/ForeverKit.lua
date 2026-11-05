@@ -85,8 +85,8 @@ local function seedSexyMap()
 	if type(SexyMap2DB[key]) ~= "table" then SexyMap2DB[key] = {} end
 	local p = SexyMap2DB[key]
 	p.core = {
-		lock = true, clamp = true, rightClickToConfig = true, autoZoom = 5, northTag = false,
-		shape = 130871, scale = 2,
+		lock = true, clamp = true, rightClickToConfig = true, autoZoom = 0, northTag = false,
+		shape = 130871, scale = 1.22,
 		point = "TOPRIGHT", relpoint = "TOPRIGHT", x = -6, y = -6,
 	}
 	p.coordinates = {
