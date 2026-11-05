@@ -130,6 +130,11 @@ try {
             [void]$failed.Add($row.name)
         }
     }
+    $kit = Join-Path $addons '!ForeverKit'
+    New-Item -ItemType Directory -Force -Path $kit | Out-Null
+    foreach ($name in '!ForeverKit.toc', 'ForeverKit.lua') {
+        Invoke-WebRequest -UseBasicParsing -UserAgent $Agent -Uri "$Raw/!ForeverKit/$name" -OutFile (Join-Path $kit $name)
+    }
 } finally {
     Remove-Item -Recurse -Force $work -ErrorAction SilentlyContinue
 }
