@@ -143,7 +143,7 @@ try {
     }
     $kit = Join-Path $addons '!ForeverKit'
     New-Item -ItemType Directory -Force -Path $kit | Out-Null
-    foreach ($name in '!ForeverKit.toc', 'Config.lua', 'ForeverKit.lua') {
+    foreach ($name in '!ForeverKit.toc', 'Layout.lua', 'Config.lua', 'ForeverKit.lua') {
         Invoke-WebRequest -UseBasicParsing -UserAgent $Agent -Uri "$Raw/!ForeverKit/$name" -OutFile (Join-Path $kit $name)
     }
     $personal = Join-Path $kit 'Personal.lua'

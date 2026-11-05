@@ -1,9 +1,10 @@
 ## Interface: 16001
 ## Title: Forever Kit
 ## Notes: Sets up the bars, minimap, tracker, and keybinds once per character.
-## Version: 1
+## Version: 2
 ## SavedVariablesPerCharacter: ForeverKitChar
 
+Layout.lua
 Config.lua
 Personal.lua
 ForeverKit.lua

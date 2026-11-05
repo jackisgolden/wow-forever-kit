@@ -1,13 +1,19 @@
--- Forever Kit. The ! in the folder name loads this before other addons, so
--- each character's layout is in place before Bartender4, SexyMap, and Questie
--- read their settings. The layout runs once per character, and /forever runs
--- it again. Binds and game settings live in Config.lua and Personal.lua, and
--- apply at login whenever they change.
+-- Forever Kit. The ! in the folder name loads this before other addons, so a
+-- character's layout is in place before Bartender4, SexyMap, Questie, and
+-- RestedXP read their settings.
+--
+-- Layout.lua is applied once per character, and /forever applies it again.
+-- Config.lua and Personal.lua hold binds and game settings, which apply at
+-- login whenever they change.
 
-local PROFILE = "Forever Kit"
-local VERSION = 1
+local Layout = ForeverKitLayout
 
-local function charKey(separator)
+local function ensure(parent, key)
+	if type(parent[key]) ~= "table" then parent[key] = {} end
+	return parent[key]
+end
+
+local function characterKey(separator)
 	local name, surname = UnitNameUnmodified("player")
 	if surname then
 		return name .. " " .. surname
@@ -15,75 +21,64 @@ local function charKey(separator)
 	return name .. separator .. GetRealmName()
 end
 
-local function bar(x, y, extra)
-	local t = {
-		version = 3, WoW10Layout = true, rows = 2, padding = 2, showgrid = true,
-		position = { point = "BOTTOM", x = x, y = y },
+local function barConfig(spec)
+	local config = {
+		version = 3, WoW10Layout = true, rows = spec.rows, padding = 2, showgrid = true,
+		position = { point = spec.point or "BOTTOM", x = spec.x, y = spec.y },
 	}
-	for k, v in pairs(extra or {}) do t[k] = v end
-	return t
-end
-
-local function off()
-	return { version = 3, WoW10Layout = true, enabled = false }
-end
-
-local function module(enabled, x, y)
-	local t = { version = 3 }
-	if enabled == false then t.enabled = false end
-	if x then t.position = { point = "BOTTOM", x = x, y = y } end
-	return t
+	config.fadeout = spec.fadeout
+	config.fadeoutalpha = spec.fadeoutalpha
+	return config
 end
 
 local function seedBartender()
 	Bartender4DB = Bartender4DB or {}
-	local db = Bartender4DB
-	db.profileKeys = db.profileKeys or {}
-	db.profiles = db.profiles or {}
-	db.namespaces = db.namespaces or {}
-	db.profileKeys[charKey(" - ")] = PROFILE
-	db.profiles[PROFILE] = { blizzardVehicle = true, focuscastmodifier = false, outofrange = "hotkey" }
+	local db, spec, name = Bartender4DB, Layout.bartender, Layout.profile
+	ensure(db, "profileKeys")[characterKey(" - ")] = name
+	ensure(db, "profiles")[name] = { blizzardVehicle = true, focuscastmodifier = false, outofrange = "hotkey" }
 
-	local function put(ns, data)
-		db.namespaces[ns] = db.namespaces[ns] or {}
-		db.namespaces[ns].profiles = db.namespaces[ns].profiles or {}
-		db.namespaces[ns].profiles[PROFILE] = data
+	local namespaces = ensure(db, "namespaces")
+	local function put(namespace, data)
+		ensure(ensure(namespaces, namespace), "profiles")[name] = data
 	end
 
-	local bars = {
-		bar(-140, 212),
-		off(), off(), off(), off(),
-		bar(-140, 118),
-		{ WoW10Layout = true }, { WoW10Layout = true }, { WoW10Layout = true }, { WoW10Layout = true },
-	}
-	bars[13] = { WoW10Layout = true }
-	bars[14] = { WoW10Layout = true }
-	bars[15] = { WoW10Layout = true }
+	local bars = {}
+	for _, id in ipairs({ 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 13, 14, 15 }) do
+		bars[id] = { WoW10Layout = true }
+	end
+	for _, id in ipairs(spec.disabledBars) do
+		bars[id] = { version = 3, WoW10Layout = true, enabled = false }
+	end
+	for id, barSpec in pairs(spec.bars) do
+		bars[id] = barConfig(barSpec)
+	end
 	put("ActionBars", { actionbars = bars })
-	put("BlizzardArt", module(false))
-	put("BagBar", module(false))
-	put("MicroMenu", module(false))
-	put("StatusTrackingBar", module(true, -285, 20))
-	put("StanceBar", module(true, -140, 256))
+
+	for _, module in ipairs(spec.hidden) do
+		put(module, { version = 3, enabled = false })
+	end
+	for module, position in pairs(spec.placed) do
+		put(module, { version = 3, position = { point = "BOTTOM", x = position.x, y = position.y } })
+	end
 end
 
 local function seedSexyMap()
-	SexyMap2DB = type(SexyMap2DB) == "table" and SexyMap2DB or {}
-	local key = charKey("-")
-	if type(SexyMap2DB[key]) ~= "table" then SexyMap2DB[key] = {} end
-	local p = SexyMap2DB[key]
-	p.core = {
+	if type(SexyMap2DB) ~= "table" then SexyMap2DB = {} end
+	local spec = Layout.sexymap
+	local profile = ensure(SexyMap2DB, characterKey("-"))
+	profile.core = {
 		lock = true, clamp = true, rightClickToConfig = true, autoZoom = 0, northTag = false,
-		shape = 130871, scale = 1.22,
-		point = "TOPRIGHT", relpoint = "TOPRIGHT", x = -6, y = -6,
+		shape = spec.shape, scale = spec.scale,
+		point = "TOPRIGHT", relpoint = "TOPRIGHT", x = spec.x, y = spec.y,
 	}
-	p.coordinates = {
+	profile.coordinates = {
 		enabled = false, xOffset = 0, yOffset = 10, updateRate = 1, monochrome = false,
 		font = "Friz Quadrata TT", outline = "NONE", coordPrecision = "%d,%d",
 		fontColor = {}, borderColor = {}, backgroundColor = {},
 	}
-	p.buttons = {
-		radius = 10, lockDragging = false, allowDragging = true, scale = 1, controlVisibility = true,
+	profile.buttons = {
+		radius = spec.iconRadius, scale = spec.iconScale,
+		lockDragging = false, allowDragging = true, controlVisibility = true,
 		dragPositions = {},
 		visibilitySettings = {
 			MinimapZoomIn = "never", MinimapZoomOut = "never", MiniMapWorldMapButton = "never",
@@ -92,7 +87,7 @@ local function seedSexyMap()
 			TimeManagerClockButton = "hover", SexyMapZoneTextButton = "hover",
 		},
 	}
-	p.borders = {
+	profile.borders = {
 		applyPreset = false, borders = {}, hideBlizzard = true,
 		backdrop = {
 			show = false, textureColor = {}, borderColor = {}, scale = 0.5,
@@ -108,9 +103,58 @@ end
 
 local function seedQuestie()
 	QuestieConfig = QuestieConfig or {}
-	QuestieConfig.profiles = QuestieConfig.profiles or {}
-	QuestieConfig.profiles.Default = QuestieConfig.profiles.Default or {}
-	QuestieConfig.profiles.Default.TrackerLocation = { "TOPRIGHT", "UIParent", "TOPRIGHT", -14, -300 }
+	ensure(ensure(QuestieConfig, "profiles"), "Default").TrackerLocation = Layout.questie
+end
+
+local function seedRestedXP()
+	RXPSettings = RXPSettings or {}
+	local key = characterKey(" - ")
+	ensure(RXPSettings, "profileKeys")[key] = key
+	local profile = ensure(ensure(RXPSettings, "profiles"), key)
+	local positions = ensure(profile, "framePositions")
+	for frameName, anchor in pairs(Layout.restedxp) do
+		positions[frameName] = { anchor }
+	end
+end
+
+local function findSetting(system, settingId)
+	for _, setting in ipairs(system.settings) do
+		if setting.setting == settingId then return setting end
+	end
+end
+
+-- Edit Mode cannot change a preset, so a preset is copied to a kit layout first.
+local function editableLayout(info)
+	local presets = EditModePresetLayoutManager:GetCopyOfPresetLayouts()
+	if info.activeLayout > #presets then
+		return info.layouts[info.activeLayout - #presets]
+	end
+	local layout = presets[info.activeLayout]
+	layout.layoutName = Layout.profile
+	layout.layoutType = Enum.EditModeLayoutType.Account
+	table.insert(info.layouts, layout)
+	info.activeLayout = #presets + #info.layouts
+	return layout
+end
+
+local function applyPartyFrames()
+	local info = C_EditMode.GetLayouts()
+	local layout = editableLayout(info)
+	for _, system in ipairs(layout.systems) do
+		if system.system == Enum.EditModeSystem.UnitFrame
+			and system.systemIndex == Enum.EditModeUnitFrameSystemIndices.Party then
+			findSetting(system, Enum.EditModeUnitFrameSetting.UseRaidStylePartyFrames).value = 1
+			local spec = Layout.party
+			system.isInDefaultPosition = false
+			system.anchorInfo = {
+				point = spec.point, relativeTo = "UIParent", relativePoint = spec.relativePoint,
+				offsetX = spec.x, offsetY = spec.y,
+			}
+			C_EditMode.SaveLayouts(info)
+			return
+		end
+	end
+	error("party frame system not found")
 end
 
 local function signature()
@@ -140,26 +184,54 @@ local function applySettings()
 	end
 end
 
-local seeders = { Bartender4 = seedBartender, SexyMap = seedSexyMap, Questie = seedQuestie }
+local function say(message)
+	print("|cff33ff99Forever Kit:|r " .. message)
+end
+
+local seeders = {
+	Bartender4 = seedBartender, SexyMap = seedSexyMap,
+	Questie = seedQuestie, RXPGuides = seedRestedXP,
+}
 local fresh = false
 local frame = CreateFrame("Frame")
+
+local function onLogin()
+	local current = signature()
+	if fresh or ForeverKitChar.settings ~= current then
+		applySettings()
+		ForeverKitChar.settings = current
+		say("your keys and settings are up to date.")
+	end
+	if fresh then
+		ForeverKitChar.version = Layout.version
+		ForeverKitChar.partyPending = true
+		say("your bars and minimap are set.")
+	end
+end
+
+-- Layouts are readable once the world loads. Saving fires the layouts event
+-- again, so the pending flag clears first.
+local function onLayouts()
+	if not ForeverKitChar.partyPending or InCombatLockdown() then return end
+	ForeverKitChar.partyPending = nil
+	local ok = pcall(applyPartyFrames)
+	if not ok then
+		say("party frames need one click: Esc, Edit Mode, then pick Raid-Style Party Frames.")
+	end
+end
+
 frame:RegisterEvent("ADDON_LOADED")
 frame:RegisterEvent("PLAYER_LOGIN")
+frame:RegisterEvent("PLAYER_ENTERING_WORLD")
+frame:RegisterEvent("EDIT_MODE_LAYOUTS_UPDATED")
 frame:SetScript("OnEvent", function(_, event, name)
 	if event == "PLAYER_LOGIN" then
-		local current = signature()
-		if fresh or ForeverKitChar.settings ~= current then
-			applySettings()
-			ForeverKitChar.settings = current
-			print("|cff33ff99Forever Kit:|r your keys and settings are up to date.")
-		end
-		if fresh then
-			ForeverKitChar.version = VERSION
-			print("|cff33ff99Forever Kit:|r your bars and minimap are set.")
-		end
+		onLogin()
+	elseif event == "PLAYER_ENTERING_WORLD" or event == "EDIT_MODE_LAYOUTS_UPDATED" then
+		onLayouts()
 	elseif name == "!ForeverKit" then
 		ForeverKitChar = ForeverKitChar or {}
-		fresh = ForeverKitChar.version ~= VERSION
+		fresh = ForeverKitChar.version ~= Layout.version
 	elseif fresh and seeders[name] then
 		seeders[name]()
 	end

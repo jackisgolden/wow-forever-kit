@@ -22,16 +22,17 @@ To update, close WoW and run the same file again. Your settings stay put, and ad
 
 Your first login sets everything up. You will see a green line in chat when it is done.
 
-Four rows of buttons sit low in the middle of your screen. Your normal WoW keys all still work.
+Three rows of 12 buttons sit along the bottom of your screen. Your normal WoW keys all still work.
 
 | Row | Keys |
 |---|---|
-| 1 | 1 2 3 4 5 6 |
-| 2 | 7 8 9 0 - = |
-| 3 | Alt + 1 2 3 4 5 6 |
-| 4 | Alt + 7 8 9 0 - = |
+| Bottom | 1 to 0, - and = |
+| Middle | Alt + the same keys |
+| Top | Ctrl + Shift + the same keys |
 
-Drag spells from your spellbook onto the buttons. Put what you press most on row 1.
+Drag spells from your spellbook onto the buttons. Put what you press most on the bottom row, and things you use less on the rows above.
+
+A faded bar on the right edge is for things you click, like your Hearthstone and food. It lights up when you hover over it.
 
 To reset your layout, type `/forever` in chat.
 
