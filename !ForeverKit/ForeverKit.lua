@@ -125,6 +125,12 @@ local function signature()
 end
 
 local function applySettings()
+	-- Earlier versions rebound default keys. Characters they touched go back to
+	-- the defaults once. Characters they never touched keep their own binds.
+	if (ForeverKitChar.version or ForeverKitChar.settings) and not ForeverKitChar.defaultsRestored then
+		LoadBindings(DEFAULT_BINDINGS)
+	end
+	ForeverKitChar.defaultsRestored = true
 	for key, action in pairs(ForeverKitConfig.binds) do
 		SetBinding(key, action or nil)
 	end

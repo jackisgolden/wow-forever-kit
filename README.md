@@ -22,20 +22,16 @@ To update, close WoW and run the same file again. Your settings stay put, and ad
 
 Your first login sets everything up. You will see a green line in chat when it is done.
 
-Four rows of buttons sit low in the middle of your screen, and each row matches your keyboard:
+Four rows of buttons sit low in the middle of your screen. Your normal WoW keys all still work.
 
 | Row | Keys |
 |---|---|
 | 1 | 1 2 3 4 5 6 |
-| 2 | Q E R F C V |
-| 3 | G Z X Y H ` |
-| 4 | Shift + 1 2 3 4 5 6 |
+| 2 | 7 8 9 0 - = |
+| 3 | Alt + 1 2 3 4 5 6 |
+| 4 | Alt + 7 8 9 0 - = |
 
 Drag spells from your spellbook onto the buttons. Put what you press most on row 1.
-
-A and D now strafe, which means you sidestep instead of turning. Turn with your mouse. It feels strange for a few days and then it is much faster.
-
-T talks to whatever you are looking at. Shift+C opens your character. B opens your bags.
 
 To reset your layout, type `/forever` in chat.
 
