@@ -108,6 +108,17 @@ $rows = $list | ConvertFrom-Csv -Delimiter "`t"
 
 $work = Join-Path $env:TEMP ("wow-forever-kit-" + [guid]::NewGuid())
 New-Item -ItemType Directory -Path $work | Out-Null
+$retired = 'AtlasBIStooltips', 'AtlasLootClassic', 'AtlasLootClassic_Collections', 'AtlasLootClassic_Crafting',
+    'AtlasLootClassic_Data', 'AtlasLootClassic_DungeonsAndRaids', 'AtlasLootClassic_Factions', 'AtlasLootClassic_Options',
+    'AtlasLootClassic_PvP', 'Details', 'Details_Compare2', 'Details_DataStorage', 'Details_EncounterDetails',
+    'Details_RaidCheck', 'Details_Streamer', 'Details_TinyThreat', 'Details_Vanguard', 'GatherMate2', 'GatherMate2_Data',
+    'GatherMate2Storage_Dragonflight', 'GatherMate2Storage_Midnight', 'GatherMate2Storage_TheWarWithin',
+    'GuideLime_TUGs_Forever', 'Guidelime', 'Leatrix_Maps', 'Prat-3.0', 'Safeguard', 'WeaponSwingTimer',
+    'unitscan', 'unitscanAON', 'unitscanData', 'unitscanIntegrity'
+foreach ($name in $retired) {
+    $old = Join-Path $addons $name
+    if (Test-Path $old) { Remove-Item -Recurse -Force $old }
+}
 $failed = New-Object System.Collections.ArrayList
 $n = 0
 try {

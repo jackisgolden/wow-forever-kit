@@ -14,7 +14,7 @@ One file sets up WoW Forever with the addons I use.
 
 **4. Start WoW.** On the character screen, click AddOns and make sure they are all ticked.
 
-To update, run the same file again. Your settings stay put.
+To update, close WoW and run the same file again. Your settings stay put, and addons I removed from the kit get removed for you.
 
 ---
 
