@@ -257,7 +257,8 @@ def test_frames_keep_other_settings_and_use_the_active_profile():
 
 
 def test_layout_version_bump_leaves_frames_alone():
-    before = 'ForeverKitChar = { version = 1, seeded = { EUIStandaloneUnitFrames = 1 } }'
+    version = re.search(r"version = (\d+),\n\t\tplayer", (ADDON / "Layout.lua").read_text())[1]
+    before = f"ForeverKitChar = {{ version = 1, seeded = {{ EUIStandaloneUnitFrames = {version} }} }}"
     assert login(before=before).eval("EUICoreStandaloneUnitFramesDB") is None
 
 
