@@ -86,6 +86,10 @@ ForeverKitLayout = {
 		y = -8,
 	},
 
+	-- SexyMap only manages some addons' icons, so the kit hides these on every
+	-- login. Each addon's menu stays on its chat command.
+	minimapIcons = { "^LibDBIcon10_", "MinimapButton$", "MinimapBadge$" },
+
 	questie = { "TOPRIGHT", "UIParent", "TOPRIGHT", -14 - edgeInset, -310 },
 
 	restedxp = {

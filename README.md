@@ -42,6 +42,16 @@ Your spellbook has a tab listing every spell you can learn and what it costs. Yo
 
 [GUIDE.md](GUIDE.md) shows which job goes on which key, for any class.
 
+The minimap has no addon icons. Type these in chat to open each addon's settings:
+
+| Type | Opens |
+|---|---|
+| `/bt` | Action bars |
+| `/ltp` | Leatrix Plus, for game tweaks |
+| `/ft` | Threat meter |
+| `/wt` | Spells you can learn |
+| `/fv` | Trainers and vendors on the map |
+
 To reset your layout, or fit it to a new monitor, type `/forever` in chat.
 
 ---

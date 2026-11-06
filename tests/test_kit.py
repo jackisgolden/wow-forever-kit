@@ -42,6 +42,17 @@ function GetCursorInfo() return cursor end
 function ClearCursor() cursor = nil end
 function PlaceAction(s) slots[s] = cursor; cursor = nil end
 C_Timer = { After = function(_, f) f() end }
+local function child(name)
+  local c = { shown = true, hooks = {} }
+  function c:GetName() return name end
+  function c:Hide() self.shown = false end
+  function c:HookScript(_, f) self.hooks[#self.hooks + 1] = f end
+  function c:Show() self.shown = true; for _, f in ipairs(self.hooks) do f(self) end end
+  return c
+end
+mapChildren = { child("LibDBIcon10_Questie"), child("DSPBuffsMinimapButton"), child("ForeverLayerHopMinimapBadge"),
+  child("SexyMapZoneTextButton"), child("QuestieFrameGroup"), child(nil) }
+Minimap = { GetChildren = function() return (table.unpack or unpack)(mapChildren) end }
 function InCombatLockdown() return inCombat end
 SlashCmdList = {}
 Enum = {
@@ -298,6 +309,14 @@ def test_xp_bar_shows_without_resetting_a_players_bars():
       Bartender4DB = { keep = 1, namespaces = { StatusTrackingBar = { profiles = { ["Forever Kit"] = { position = { x = 1 } } } } } }"""
     e = login(before=before).eval
     assert e(f"{bar}.enabled") is True and e(f"{bar}.position.x") == 1 and e("Bartender4DB.keep") == 1
+
+
+def test_minimap_icons_hide_and_stay_hidden_but_pins_and_zone_text_stay():
+    lua = login()
+    e = lua.eval
+    assert [e(f"mapChildren[{i}].shown") for i in range(1, 7)] == [False, False, False, True, True, True]
+    lua.execute("mapChildren[1]:Show()")
+    assert e("mapChildren[1].shown") is False and e("#mapChildren[1].hooks") == 1
 
 
 def test_layout_version_bump_leaves_frames_alone():

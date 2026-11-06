@@ -296,6 +296,26 @@ local function onActions()
 	say("your macros and buttons are in place.")
 end
 
+local hiddenIcons = {}
+
+local function isMinimapIcon(name)
+	for _, pattern in ipairs(Layout.minimapIcons) do
+		if name:find(pattern) then return true end
+	end
+	return false
+end
+
+-- Addons show their icons again whenever they refresh, so each stays hooked.
+local function hideMinimapIcons()
+	for _, child in ipairs({ Minimap:GetChildren() }) do
+		if not hiddenIcons[child] and isMinimapIcon(child:GetName() or "") then
+			hiddenIcons[child] = true
+			child:HookScript("OnShow", child.Hide)
+			child:Hide()
+		end
+	end
+end
+
 local seeders = {
 	Bartender4 = seedBartender, SexyMap = seedSexyMap,
 	Questie = seedQuestie, RXPGuides = seedRestedXP,
@@ -346,6 +366,9 @@ frame:SetScript("OnEvent", function(_, event, name)
 	elseif event == "PLAYER_ENTERING_WORLD" then
 		onLayouts()
 		C_Timer.After(2, onActions)
+		-- Some addons add their icon a few seconds into the session.
+		C_Timer.After(2, hideMinimapIcons)
+		C_Timer.After(10, hideMinimapIcons)
 	elseif event == "EDIT_MODE_LAYOUTS_UPDATED" then
 		onLayouts()
 	elseif event == "PLAYER_REGEN_ENABLED" then
