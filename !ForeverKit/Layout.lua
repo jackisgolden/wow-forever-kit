@@ -29,6 +29,8 @@ local cardTotalWidth = CARD_WIDTH + CARD_HEIGHT + CARD_POWER
 local cardLeft = CARD_X - cardTotalWidth / 2
 local cardTop = CARD_Y + (CARD_HEIGHT + CARD_POWER) / 2
 
+local HEALTH_GREEN = { r = 37 / 255, g = 193 / 255, b = 29 / 255 }
+
 local function card(side)
 	return {
 		frameWidth = CARD_WIDTH, healthHeight = CARD_HEIGHT, powerHeight = CARD_POWER,
@@ -80,11 +82,12 @@ ForeverKitLayout = {
 	-- Raid-style party frames, just left of the player frame.
 	party = { point = "TOPRIGHT", relativePoint = "CENTER", x = -480, y = -240 },
 
-	-- EllesmereUI unit frames, used when those addons are installed. Positions
+	-- EllesmereUI unit and party frames, used when those modules are installed. Positions
 	-- are measured from the screen center.
 	frames = {
-		version = 2,
+		version = 3,
 		player = card("left"),
+		playerHealth = { healthClassColored = false, customFillColor = HEALTH_GREEN },
 		target = card("right"),
 		positions = {
 			player = { point = "CENTER", relPoint = "CENTER", x = CARD_X, y = CARD_Y },
@@ -93,7 +96,9 @@ ForeverKitLayout = {
 		party = {
 			partyFrameWidth = 130, partyFrameHeight = 24, partyHideSelf = true,
 			partyFlipGrowth = true, healthBarOpacity = CARD_OPACITY,
-			healthColorMode = "class", healthBarTexture = "none",
+			healthColorMode = "custom", customFillColor = HEALTH_GREEN, healthBarTexture = "none",
+			showPowerBar = true, powerHeight = 4,
+			powerShowForTank = true, powerShowForHealer = true, powerShowForDPS = true,
 			healthTextMode = "percent", healthTextPosition = "right",
 			partyPortraitStyle = "attached", partyPortraitSide = "left",
 			partyUnlockPos = {

@@ -143,16 +143,17 @@ local function merge(target, source)
 end
 
 local function seedUnitFrames()
-	EUICoreStandaloneUnitFramesDB = EUICoreStandaloneUnitFramesDB or {}
+	EllesmereUIDB = EllesmereUIDB or {}
+	EllesmereUIDB.firstInstallPopupShown = true
 	local spec = Layout.frames
-	merge(frameProfile(EUICoreStandaloneUnitFramesDB, "EUIStandaloneUnitFrames"), {
-		player = spec.player, target = spec.target, positions = spec.positions,
-	})
+	local profile = frameProfile(EllesmereUIDB, "EllesmereUIUnitFrames")
+	merge(profile, { player = spec.player, target = spec.target, positions = spec.positions })
+	merge(profile.player, spec.playerHealth)
 end
 
 local function seedPartyFrames()
-	EUICoreStandaloneRaidFramesDB = EUICoreStandaloneRaidFramesDB or {}
-	merge(frameProfile(EUICoreStandaloneRaidFramesDB, "EUIStandaloneRaidFrames"), Layout.frames.party)
+	EllesmereUIDB = EllesmereUIDB or {}
+	merge(frameProfile(EllesmereUIDB, "EllesmereUIRaidFrames"), Layout.frames.party)
 end
 
 local function findSetting(system, settingId)
@@ -290,8 +291,8 @@ local seeders = {
 }
 local onceSeeders = {
 	Leatrix_Plus = { run = seedLeatrix, version = 1 },
-	EUIStandaloneUnitFrames = { run = seedUnitFrames, version = Layout.frames.version },
-	EUIStandaloneRaidFrames = { run = seedPartyFrames, version = Layout.frames.version },
+	EllesmereUIUnitFrames = { run = seedUnitFrames, version = Layout.frames.version },
+	EllesmereUIRaidFrames = { run = seedPartyFrames, version = Layout.frames.version },
 }
 local fresh = false
 local frame = CreateFrame("Frame")

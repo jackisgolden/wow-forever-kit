@@ -59,7 +59,7 @@ C_EditMode = {
 """
 
 ADDONS = ("!ForeverKit", "Bartender4", "SexyMap", "Questie", "RXPGuides",
-          "Leatrix_Plus", "EUIStandaloneUnitFrames", "EUIStandaloneRaidFrames")
+          "Leatrix_Plus", "EllesmereUIUnitFrames", "EllesmereUIRaidFrames")
 
 
 def login(name="Raba", surname="Canoosh", before="", personal=""):
@@ -238,28 +238,31 @@ def test_auto_repair_turns_on_once_so_players_can_turn_it_off():
 
 def test_party_stack_sits_left_of_and_above_a_larger_player_card():
     e = login().eval
-    unit = 'EUICoreStandaloneUnitFramesDB.profiles.Default.addons.EUIStandaloneUnitFrames'
-    party = 'EUICoreStandaloneRaidFramesDB.profiles.Default.addons.EUIStandaloneRaidFrames'
+    unit = 'EllesmereUIDB.profiles.Default.addons.EllesmereUIUnitFrames'
+    party = 'EllesmereUIDB.profiles.Default.addons.EllesmereUIRaidFrames'
     width, height = e(f"{unit}.player.frameWidth"), e(f"{unit}.player.healthHeight") + e(f"{unit}.player.powerHeight")
     assert e(f"{party}.partyFrameWidth") < width and e(f"{party}.partyFrameHeight") < height
     x, y = e(f"{unit}.positions.player.x"), e(f"{unit}.positions.player.y")
     left, top = x - (width + height) / 2, y + height / 2
     assert e(f"{party}.partyUnlockPos.x") == left - 100 and e(f"{party}.partyUnlockPos.y") > top
     assert e(f"{unit}.player.healthBarOpacity") < 100 and e(f"{party}.partyPortraitStyle") == "attached"
+    assert e(f"{unit}.player.healthClassColored") is False and e(f"{unit}.target.healthClassColored") is None
+    assert e(f"{unit}.player.customFillColor.g") == e(f"{party}.customFillColor.g")
+    assert e(f"{party}.powerShowForDPS") is True and e("EllesmereUIDB.firstInstallPopupShown") is True
 
 
 def test_frames_keep_other_settings_and_use_the_active_profile():
-    before = """EUICoreStandaloneUnitFramesDB = { activeProfile = "Mine", profiles = { Mine = { addons = {
-      EUIStandaloneUnitFrames = { player = { showBuffs = true } } } } } }"""
+    before = """EllesmereUIDB = { activeProfile = "Mine", profiles = { Mine = { addons = {
+      EllesmereUIUnitFrames = { player = { showBuffs = true } } } } } }"""
     e = login(before=before).eval
-    player = "EUICoreStandaloneUnitFramesDB.profiles.Mine.addons.EUIStandaloneUnitFrames.player"
+    player = "EllesmereUIDB.profiles.Mine.addons.EllesmereUIUnitFrames.player"
     assert e(f"{player}.showBuffs") is True and e(f"{player}.frameWidth") == 210
 
 
 def test_layout_version_bump_leaves_frames_alone():
     version = re.search(r"version = (\d+),\n\t\tplayer", (ADDON / "Layout.lua").read_text())[1]
-    before = f"ForeverKitChar = {{ version = 1, seeded = {{ EUIStandaloneUnitFrames = {version} }} }}"
-    assert login(before=before).eval("EUICoreStandaloneUnitFramesDB") is None
+    before = f"ForeverKitChar = {{ version = 1, seeded = {{ EllesmereUIUnitFrames = {version} }} }}"
+    assert login(before=before).eval("EllesmereUIDB") is None
 
 
 if __name__ == "__main__":
