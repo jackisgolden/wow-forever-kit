@@ -59,8 +59,14 @@ local function seedBartender()
 		put(module, { version = 3, enabled = false })
 	end
 	for module, position in pairs(spec.placed) do
-		put(module, { version = 3, position = { point = "BOTTOM", x = position.x, y = position.y } })
+		put(module, { version = 3, enabled = true, position = { point = "BOTTOM", x = position.x, y = position.y } })
 	end
+end
+
+local function showStatusBar()
+	Bartender4DB = Bartender4DB or {}
+	local namespace = ensure(ensure(Bartender4DB, "namespaces"), "StatusTrackingBar")
+	ensure(ensure(namespace, "profiles"), Layout.profile).enabled = true
 end
 
 local function seedSexyMap()
@@ -295,6 +301,7 @@ local seeders = {
 	Questie = seedQuestie, RXPGuides = seedRestedXP,
 }
 local onceSeeders = {
+	Bartender4 = { run = showStatusBar, version = 1 },
 	Leatrix_Plus = { run = seedLeatrix, version = 1 },
 	EllesmereUIUnitFrames = { run = seedUnitFrames, version = Layout.frames.version },
 	EllesmereUIRaidFrames = { run = seedPartyFrames, version = Layout.frames.version },
@@ -346,13 +353,13 @@ frame:SetScript("OnEvent", function(_, event, name)
 	elseif name == "!ForeverKit" then
 		ForeverKitChar = ForeverKitChar or {}
 		fresh = ForeverKitChar.version ~= Layout.version
-	elseif fresh and seeders[name] then
-		seeders[name]()
-	elseif onceSeeders[name] then
+	else
+		if fresh and seeders[name] then seeders[name]() end
+		local once = onceSeeders[name]
 		local seeded = ensure(ForeverKitChar, "seeded")
-		if seeded[name] ~= onceSeeders[name].version then
-			onceSeeders[name].run()
-			seeded[name] = onceSeeders[name].version
+		if once and seeded[name] ~= once.version then
+			once.run()
+			seeded[name] = once.version
 		end
 	end
 end)

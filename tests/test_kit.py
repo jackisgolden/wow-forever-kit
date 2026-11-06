@@ -291,6 +291,15 @@ def test_threat_meter_sits_beside_the_bars_and_matches_their_height():
     assert e("ForeverThreatDB.frameHeight") == 139 and e("ForeverThreatDB.y") == 22
 
 
+def test_xp_bar_shows_without_resetting_a_players_bars():
+    bar = 'Bartender4DB.namespaces.StatusTrackingBar.profiles["Forever Kit"]'
+    assert login().eval(f"{bar}.enabled") is True
+    before = """ForeverKitChar = { version = 2, settings = "old" }
+      Bartender4DB = { keep = 1, namespaces = { StatusTrackingBar = { profiles = { ["Forever Kit"] = { position = { x = 1 } } } } } }"""
+    e = login(before=before).eval
+    assert e(f"{bar}.enabled") is True and e(f"{bar}.position.x") == 1 and e("Bartender4DB.keep") == 1
+
+
 def test_layout_version_bump_leaves_frames_alone():
     version = re.search(r"version = (\d+),\n\t\tplayer", (ADDON / "Layout.lua").read_text())[1]
     before = f"ForeverKitChar = {{ version = 1, seeded = {{ EllesmereUIUnitFrames = {version}, EllesmereUIRaidFrames = {version}, ForeverThreat = {version} }} }}"
