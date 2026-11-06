@@ -25,6 +25,9 @@ function LoadBindings(n) assert(n == 0); resets = resets + 1; binds = {} end
 function SetCVar(k, v) cvars[k] = v end
 function print(m) messages[#messages + 1] = m end
 function ReloadUI() end
+screenWidth, screenHeight = 2133, 1200
+function GetScreenWidth() return screenWidth end
+function GetScreenHeight() return screenHeight end
 macroList, slots, cursor, knownSpells = {}, {}, nil, { Exorcism = true }
 keyActions = { ["2"] = "ACTIONBUTTON2", ["4"] = "ACTIONBUTTON4",
   ["SHIFT-2"] = "MULTIACTIONBAR1BUTTON2", ["CTRL-SHIFT-3"] = "MULTIACTIONBAR2BUTTON3" }
@@ -59,7 +62,7 @@ C_EditMode = {
 """
 
 ADDONS = ("!ForeverKit", "Bartender4", "SexyMap", "Questie", "RXPGuides",
-          "Leatrix_Plus", "EllesmereUIUnitFrames", "EllesmereUIRaidFrames")
+          "Leatrix_Plus", "EllesmereUIUnitFrames", "EllesmereUIRaidFrames", "ForeverThreat")
 
 
 def login(name="Raba", surname="Canoosh", before="", personal=""):
@@ -243,8 +246,7 @@ def test_party_stack_sits_left_of_and_above_a_larger_player_card():
     width, height = e(f"{unit}.player.frameWidth"), e(f"{unit}.player.healthHeight") + e(f"{unit}.player.powerHeight")
     assert e(f"{party}.partyFrameWidth") < width and e(f"{party}.partyFrameHeight") < height
     x, y = e(f"{unit}.positions.player.x"), e(f"{unit}.positions.player.y")
-    left, top = x - (width + height) / 2, y + height / 2
-    assert e(f"{party}.partyUnlockPos.x") == left - 100 and e(f"{party}.partyUnlockPos.y") > top
+    assert e(f"{party}.partyUnlockPos.x") < x and e(f"{party}.partyUnlockPos.y") > y + height
     assert e(f"{unit}.player.healthBarOpacity") < 100 and e(f"{party}.partyPortraitStyle") == "attached"
     assert e(f"{unit}.player.healthClassColored") is False and e(f"{unit}.target.healthClassColored") is None
     assert e(f"{unit}.player.customFillColor.g") == e(f"{party}.customFillColor.g")
@@ -256,12 +258,42 @@ def test_frames_keep_other_settings_and_use_the_active_profile():
       EllesmereUIUnitFrames = { player = { showBuffs = true } } } } } }"""
     e = login(before=before).eval
     player = "EllesmereUIDB.profiles.Mine.addons.EllesmereUIUnitFrames.player"
-    assert e(f"{player}.showBuffs") is True and e(f"{player}.frameWidth") == 210
+    assert e(f"{player}.showBuffs") is True and e(f"{player}.frameWidth") == 197
+
+
+def test_cards_line_up_with_the_bar_block_on_any_screen():
+    bars = 'Bartender4DB.namespaces.ActionBars.profiles["Forever Kit"].actionbars'
+    unit = 'EllesmereUIDB.profiles.Default.addons.EllesmereUIUnitFrames'
+    seen = []
+    for width, height in ((1920, 1080), (2133, 1200), (4267, 1200)):
+        e = login(before=f"screenWidth, screenHeight = {width}, {height}").eval
+        player, target = f"{unit}.positions.player", f"{unit}.positions.target"
+        assert e(f"{player}.x") == e(f"{bars}[1].position.x") and e(f"{target}.x") == -e(f"{player}.x")
+        assert e(f"{player}.relPoint") == e(f"{target}.relPoint") == "BOTTOM"
+        assert e(f"{unit}.player.frameWidth") + e(f"{unit}.player.healthHeight") + e(f"{unit}.player.powerHeight") == 233
+        seen.append(e(f"{player}.y"))
+    assert len(set(seen)) == 1
+
+
+def test_edge_frames_stay_inside_a_centered_16_by_9_area():
+    wide = login(before="screenWidth, screenHeight = 4267, 1200").eval
+    normal = login().eval
+    inset = (4267 - 1200 * 16 / 9) / 2
+    questie = "QuestieConfig.profiles.Default.TrackerLocation[4]"
+    assert abs(normal(questie) - wide(questie) - inset) < 1e-6
+    assert abs(normal('SexyMap2DB["Raba Canoosh"].core.x') - wide('SexyMap2DB["Raba Canoosh"].core.x') - inset / 1.5) < 1e-6
+
+
+def test_threat_meter_sits_beside_the_bars_and_matches_their_height():
+    e = login().eval
+    assert e("ForeverThreatDB.point") == "BOTTOM"
+    assert e("ForeverThreatDB.x") - e("ForeverThreatDB.frameWidth") / 2 > 281
+    assert e("ForeverThreatDB.frameHeight") == 139 and e("ForeverThreatDB.y") == 22
 
 
 def test_layout_version_bump_leaves_frames_alone():
     version = re.search(r"version = (\d+),\n\t\tplayer", (ADDON / "Layout.lua").read_text())[1]
-    before = f"ForeverKitChar = {{ version = 1, seeded = {{ EllesmereUIUnitFrames = {version}, EllesmereUIRaidFrames = {version} }} }}"
+    before = f"ForeverKitChar = {{ version = 1, seeded = {{ EllesmereUIUnitFrames = {version}, EllesmereUIRaidFrames = {version}, ForeverThreat = {version} }} }}"
     assert login(before=before).eval("EllesmereUIDB") is None
 
 

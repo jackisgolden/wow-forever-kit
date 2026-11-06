@@ -156,6 +156,11 @@ local function seedPartyFrames()
 	merge(frameProfile(EllesmereUIDB, "EllesmereUIRaidFrames"), Layout.frames.party)
 end
 
+local function seedThreat()
+	ForeverThreatDB = ForeverThreatDB or {}
+	merge(ForeverThreatDB, Layout.frames.threat)
+end
+
 local function findSetting(system, settingId)
 	for _, setting in ipairs(system.settings) do
 		if setting.setting == settingId then return setting end
@@ -293,6 +298,7 @@ local onceSeeders = {
 	Leatrix_Plus = { run = seedLeatrix, version = 1 },
 	EllesmereUIUnitFrames = { run = seedUnitFrames, version = Layout.frames.version },
 	EllesmereUIRaidFrames = { run = seedPartyFrames, version = Layout.frames.version },
+	ForeverThreat = { run = seedThreat, version = Layout.frames.version },
 }
 local fresh = false
 local frame = CreateFrame("Frame")
