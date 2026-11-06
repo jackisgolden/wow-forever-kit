@@ -1,9 +1,11 @@
-source	id	pin	file	name
-curseforge	6124	9162359	Auctionator-341.zip	Auctionator
-curseforge	1592	9193505	CUsersJaliborcDesktopBagnon-12.1.7.zip	Bagnon
-curseforge	13501	9414749	Bartender4-4.18.4.zip	Bartender4
-curseforge	94855	9275554	Leatrix_Plus-1.60.25-forever.zip	Leatrix Plus
-curseforge	334372	9433373	Questie-v12.5.1.zip	Questie
-github	Questie/QuestieDB	v1.0.10	QuestieDB-Forever.zip	QuestieDB
-curseforge	486246	9443401	RXPGuides-v4.11.32.zip	RestedXP
-curseforge	15936	9436884	SexyMap-v12.1.5.zip	SexyMap
+source	id	pin	file	name	folders
+curseforge	6124	9162359	Auctionator-341.zip	Auctionator	
+curseforge	1592	9193505	CUsersJaliborcDesktopBagnon-12.1.7.zip	Bagnon	
+curseforge	1477613	9467870	EllesmereUI-v9.7.7.zip	EllesmereUI	EllesmereUI,EllesmereUIOptions,EllesmereUIUnitFrames,EllesmereUIRaidFrames
+curseforge	1704969	9403979	ForeverThreat-1.7.1.zip	ForeverThreat	
+curseforge	13501	9414749	Bartender4-4.18.4.zip	Bartender4	
+curseforge	94855	9275554	Leatrix_Plus-1.60.25-forever.zip	Leatrix Plus	
+curseforge	334372	9433373	Questie-v12.5.1.zip	Questie	
+github	Questie/QuestieDB	v1.0.10	QuestieDB-Forever.zip	QuestieDB	
+curseforge	486246	9443401	RXPGuides-v4.11.32.zip	RestedXP	
+curseforge	15936	9436884	SexyMap-v12.1.5.zip	SexyMap	

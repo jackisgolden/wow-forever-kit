@@ -36,6 +36,8 @@ A faded bar on the right edge is for things like your Hearthstone and food. It l
 
 Enemies show health bars above their heads, and your gear repairs itself when you open a repair vendor.
 
+Your health card and your party's cards sit near the middle of the screen, with your party stacked above and to the left. Type `/ft` for the threat meter, which shows who is closest to pulling aggro.
+
 To reset your layout, type `/forever` in chat.
 
 ---

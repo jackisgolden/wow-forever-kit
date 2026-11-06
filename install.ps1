@@ -3,6 +3,7 @@
 # Downloads the newest Forever build of each addon in addons.tsv from its
 # author's release, and replaces only those addon folders. It never touches
 # WTF, where settings live. A pinned file in addons.tsv covers a failed lookup.
+# A row's folders column limits which folders of that addon's zip are installed.
 #
 # WOW_KIT_ADDONS overrides the target AddOns folder.
 
@@ -130,7 +131,9 @@ try {
             $out = Join-Path $work "$n"
             Invoke-WebRequest -UseBasicParsing -UserAgent $Agent -TimeoutSec 300 -Uri (Get-Url $row) -OutFile $zip
             [IO.Compression.ZipFile]::ExtractToDirectory($zip, $out)
+            $wanted = if ($row.folders) { $row.folders -split ',' } else { $null }
             foreach ($dir in Get-ChildItem -Path $out -Directory) {
+                if ($wanted -and $wanted -notcontains $dir.Name) { continue }
                 $dest = Join-Path $addons $dir.Name
                 if (Test-Path $dest) { Remove-Item -Recurse -Force $dest }
                 Copy-Item -Recurse -Path $dir.FullName -Destination $dest
