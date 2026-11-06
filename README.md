@@ -32,7 +32,9 @@ Three rows of 12 buttons sit along the bottom of your screen. Your normal WoW ke
 
 Drag spells from your spellbook onto the buttons. Put what you press most on the bottom row, and things you use less on the rows above.
 
-A faded bar on the right edge is for things you click, like your Hearthstone and food. It lights up when you hover over it.
+A faded bar on the right edge is for things like your Hearthstone and food. It lights up when you hover over it, and its first six buttons are Alt + Q, E, R, F, C and V.
+
+Enemies show health bars above their heads, and your gear repairs itself when you open a repair vendor.
 
 To reset your layout, type `/forever` in chat.
 

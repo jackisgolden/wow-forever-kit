@@ -3,8 +3,9 @@
 -- RestedXP read their settings.
 --
 -- Layout.lua is applied once per character, and /forever applies it again.
--- Config.lua and Personal.lua hold binds and game settings, which apply at
--- login whenever they change.
+-- Config.lua and Personal.lua hold binds, game settings, macros, and spell
+-- placement, which apply at login whenever they change. Leatrix Plus options
+-- and EllesmereUI frames apply once per character, each on its own version.
 
 local Layout = ForeverKitLayout
 
@@ -117,6 +118,43 @@ local function seedRestedXP()
 	end
 end
 
+local function seedLeatrix()
+	LeaPlusDB = LeaPlusDB or {}
+	for option, value in pairs(ForeverKitConfig.leatrix) do
+		LeaPlusDB[option] = value
+	end
+end
+
+-- EllesmereUI fills missing keys from its defaults, so a partial profile keeps
+-- every other setting. Its store is profiles[active].addons[folder].
+local function frameProfile(store, folder)
+	local active = store.activeProfile or "Default"
+	return ensure(ensure(ensure(ensure(store, "profiles"), active), "addons"), folder)
+end
+
+local function merge(target, source)
+	for key, value in pairs(source) do
+		if type(value) == "table" then
+			merge(ensure(target, key), value)
+		else
+			target[key] = value
+		end
+	end
+end
+
+local function seedUnitFrames()
+	EUICoreStandaloneUnitFramesDB = EUICoreStandaloneUnitFramesDB or {}
+	local spec = Layout.frames
+	merge(frameProfile(EUICoreStandaloneUnitFramesDB, "EUIStandaloneUnitFrames"), {
+		player = spec.player, target = spec.target, positions = spec.positions,
+	})
+end
+
+local function seedPartyFrames()
+	EUICoreStandaloneRaidFramesDB = EUICoreStandaloneRaidFramesDB or {}
+	merge(frameProfile(EUICoreStandaloneRaidFramesDB, "EUIStandaloneRaidFrames"), Layout.frames.party)
+end
+
 local function findSetting(system, settingId)
 	for _, setting in ipairs(system.settings) do
 		if setting.setting == settingId then return setting end
@@ -188,9 +226,72 @@ local function say(message)
 	print("|cff33ff99Forever Kit:|r " .. message)
 end
 
+local SLOT_OFFSET = {
+	ACTIONBUTTON = 0, MULTIACTIONBAR1BUTTON = 60, MULTIACTIONBAR2BUTTON = 48,
+	MULTIACTIONBAR3BUTTON = 24, MULTIACTIONBAR4BUTTON = 36,
+}
+
+local function slotForKey(key)
+	local prefix, index = (GetBindingAction(key) or ""):match("^(.-BUTTON)(%d+)$")
+	return SLOT_OFFSET[prefix] and SLOT_OFFSET[prefix] + tonumber(index)
+end
+
+local function place(key, pickup, target)
+	local slot = slotForKey(key)
+	if not slot then return end
+	ClearCursor()
+	pickup(target)
+	if GetCursorInfo() then PlaceAction(slot) end
+	ClearCursor()
+end
+
+local function actionSignature()
+	local parts = {}
+	for _, macro in ipairs(ForeverKitConfig.macros) do
+		parts[#parts + 1] = table.concat({ macro.name, macro.key or "", macro.bind or "", macro.body }, "|")
+	end
+	for key, spell in pairs(ForeverKitConfig.spells) do
+		parts[#parts + 1] = key .. "=" .. spell
+	end
+	table.sort(parts)
+	return table.concat(parts, ";")
+end
+
+local function applyActions()
+	local pickupSpell = C_Spell and C_Spell.PickupSpell or PickupSpell
+	for _, macro in ipairs(ForeverKitConfig.macros) do
+		if GetMacroIndexByName(macro.name) == 0 then
+			CreateMacro(macro.name, "INV_MISC_QUESTIONMARK", macro.body, true)
+		else
+			EditMacro(GetMacroIndexByName(macro.name), macro.name, nil, macro.body)
+		end
+		if macro.key then place(macro.key, PickupMacro, macro.name) end
+		if macro.bind then SetBindingMacro(macro.bind, macro.name) end
+	end
+	for key, spell in pairs(ForeverKitConfig.spells) do
+		place(key, pickupSpell, spell)
+	end
+	SaveBindings(GetCurrentBindingSet())
+end
+
+-- Macros and action bars load a moment after the world does, and neither can
+-- change in combat, so this waits for both.
+local function onActions()
+	local current = actionSignature()
+	if (ForeverKitChar.actions or "") == current or InCombatLockdown() then return end
+	applyActions()
+	ForeverKitChar.actions = current
+	say("your macros and buttons are in place.")
+end
+
 local seeders = {
 	Bartender4 = seedBartender, SexyMap = seedSexyMap,
 	Questie = seedQuestie, RXPGuides = seedRestedXP,
+}
+local onceSeeders = {
+	Leatrix_Plus = { run = seedLeatrix, version = 1 },
+	EUIStandaloneUnitFrames = { run = seedUnitFrames, version = Layout.frames.version },
+	EUIStandaloneRaidFrames = { run = seedPartyFrames, version = Layout.frames.version },
 }
 local fresh = false
 local frame = CreateFrame("Frame")
@@ -224,16 +325,28 @@ frame:RegisterEvent("ADDON_LOADED")
 frame:RegisterEvent("PLAYER_LOGIN")
 frame:RegisterEvent("PLAYER_ENTERING_WORLD")
 frame:RegisterEvent("EDIT_MODE_LAYOUTS_UPDATED")
+frame:RegisterEvent("PLAYER_REGEN_ENABLED")
 frame:SetScript("OnEvent", function(_, event, name)
 	if event == "PLAYER_LOGIN" then
 		onLogin()
-	elseif event == "PLAYER_ENTERING_WORLD" or event == "EDIT_MODE_LAYOUTS_UPDATED" then
+	elseif event == "PLAYER_ENTERING_WORLD" then
 		onLayouts()
+		C_Timer.After(2, onActions)
+	elseif event == "EDIT_MODE_LAYOUTS_UPDATED" then
+		onLayouts()
+	elseif event == "PLAYER_REGEN_ENABLED" then
+		onActions()
 	elseif name == "!ForeverKit" then
 		ForeverKitChar = ForeverKitChar or {}
 		fresh = ForeverKitChar.version ~= Layout.version
 	elseif fresh and seeders[name] then
 		seeders[name]()
+	elseif onceSeeders[name] then
+		local seeded = ensure(ForeverKitChar, "seeded")
+		if seeded[name] ~= onceSeeders[name].version then
+			onceSeeders[name].run()
+			seeded[name] = onceSeeders[name].version
+		end
 	end
 end)
 

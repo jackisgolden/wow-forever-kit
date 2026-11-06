@@ -5,6 +5,11 @@
 -- working. The bottom row uses the default 1 to 0, - and =. Key names: A, SHIFT-1, CTRL-F, ALT-Q, BUTTON4, BUTTON5,
 -- MOUSEWHEELUP. Set a key to false to unbind it.
 -- cvars: game settings. cameraFov tops out at 90.
+-- leatrix: Leatrix Plus options, set once per character.
+-- macros: { name = "Heal", key = "SHIFT-2", bind = "BUTTON3", body = "..." }. A
+-- macro lands on the button a key presses, a bind goes straight on a key, and
+-- each takes either. Macros belong to one character.
+-- spells: key = spell name, placed on the button that key presses.
 
 ForeverKitConfig = {
 	binds = {
@@ -22,9 +27,19 @@ ForeverKitConfig = {
 		["CTRL-SHIFT-7"] = "MULTIACTIONBAR2BUTTON7", ["CTRL-SHIFT-8"] = "MULTIACTIONBAR2BUTTON8",
 		["CTRL-SHIFT-9"] = "MULTIACTIONBAR2BUTTON9", ["CTRL-SHIFT-0"] = "MULTIACTIONBAR2BUTTON10",
 		["CTRL-SHIFT--"] = "MULTIACTIONBAR2BUTTON11", ["CTRL-SHIFT-="] = "MULTIACTIONBAR2BUTTON12",
+		-- Utility bar
+		["ALT-Q"] = "MULTIACTIONBAR4BUTTON1", ["ALT-E"] = "MULTIACTIONBAR4BUTTON2",
+		["ALT-R"] = "MULTIACTIONBAR4BUTTON3", ["ALT-F"] = "MULTIACTIONBAR4BUTTON4",
+		["ALT-C"] = "MULTIACTIONBAR4BUTTON5", ["ALT-V"] = "MULTIACTIONBAR4BUTTON6",
 	},
 	cvars = {
 		cameraSmoothStyle = 0,
 		cameraFov = 90,
+		nameplateShowEnemies = 1,
 	},
+	leatrix = {
+		AutoRepairGear = "On",
+	},
+	macros = {},
+	spells = {},
 }

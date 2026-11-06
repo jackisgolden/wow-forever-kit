@@ -25,6 +25,20 @@ function LoadBindings(n) assert(n == 0); resets = resets + 1; binds = {} end
 function SetCVar(k, v) cvars[k] = v end
 function print(m) messages[#messages + 1] = m end
 function ReloadUI() end
+macroList, slots, cursor, knownSpells = {}, {}, nil, { Exorcism = true }
+keyActions = { ["2"] = "ACTIONBUTTON2", ["4"] = "ACTIONBUTTON4",
+  ["SHIFT-2"] = "MULTIACTIONBAR1BUTTON2", ["CTRL-SHIFT-3"] = "MULTIACTIONBAR2BUTTON3" }
+function GetBindingAction(k) return keyActions[k] or "" end
+function GetMacroIndexByName(n) for i, m in ipairs(macroList) do if m.name == n then return i end end return 0 end
+function CreateMacro(n, _, b, perChar) assert(perChar); macroList[#macroList + 1] = { name = n, body = b }; return #macroList end
+function EditMacro(i, _, _, b) macroList[i].body = b end
+function SetBindingMacro(k, n) binds[k] = "MACRO " .. n end
+function PickupMacro(n) cursor = n end
+C_Spell = { PickupSpell = function(n) if knownSpells[n] then cursor = n end end }
+function GetCursorInfo() return cursor end
+function ClearCursor() cursor = nil end
+function PlaceAction(s) slots[s] = cursor; cursor = nil end
+C_Timer = { After = function(_, f) f() end }
 function InCombatLockdown() return inCombat end
 SlashCmdList = {}
 Enum = {
@@ -44,7 +58,8 @@ C_EditMode = {
 }
 """
 
-ADDONS = ("!ForeverKit", "Bartender4", "SexyMap", "Questie", "RXPGuides")
+ADDONS = ("!ForeverKit", "Bartender4", "SexyMap", "Questie", "RXPGuides",
+          "Leatrix_Plus", "EUIStandaloneUnitFrames", "EUIStandaloneRaidFrames")
 
 
 def login(name="Raba", surname="Canoosh", before="", personal=""):
@@ -89,8 +104,8 @@ def test_map_icons_keep_their_size_and_sit_on_the_edge():
 def test_binds_avoid_default_keys():
     lua = login()
     keys = list(lua.globals().binds)
-    assert len(keys) == 24 and len({lua.globals().binds[k] for k in keys}) == 24
-    assert all(re.fullmatch(r"(ALT|CTRL-SHIFT)-[0-9=-]", k) for k in keys), keys
+    assert len(keys) == 30 and len({lua.globals().binds[k] for k in keys}) == 30
+    assert all(re.fullmatch(r"(ALT|CTRL-SHIFT)-[0-9=-]|ALT-[QERFCV]", k) for k in keys), keys
     assert lua.eval("resets") == 0 and lua.eval("cvars.cameraFov") == 90
 
 
@@ -171,6 +186,79 @@ def test_surnameless_characters_use_each_addons_key_format():
     e = login(name="Bob", surname=None).eval
     assert e('Bartender4DB.profileKeys["Bob - Realm"]') == "Forever Kit"
     assert e('SexyMap2DB["Bob-Realm"].core.scale') == 1.5
+
+
+MACROS = """ForeverKitConfig.macros = {
+  { name = "Heal", key = "SHIFT-2", body = "/cast Holy Light" },
+  { name = "Skull", bind = "BUTTON3", body = "/tm !8" },
+}
+ForeverKitConfig.spells = { ["4"] = "Exorcism", ["CTRL-SHIFT-3"] = "Devotion Aura" }"""
+
+
+def test_macros_land_on_the_button_each_key_presses():
+    e = login(personal=MACROS).eval
+    assert e("#macroList") == 2 and e("slots[62]") == "Heal"
+    assert e("binds.BUTTON3") == "MACRO Skull" and e("slots[4]") == "Exorcism"
+
+
+def test_unknown_spell_leaves_the_button_alone():
+    e = login(personal=MACROS, before='slots[51] = "keep"').eval
+    assert e("slots[51]") == "keep"
+
+
+def test_friends_with_no_macros_touch_no_buttons():
+    e = login().eval
+    assert e("#macroList") == 0 and e("next(slots)") is None and e("ForeverKitChar.actions") is None
+
+
+def test_macros_apply_once_and_update_in_place():
+    lua = login(personal=MACROS)
+    done = lua.eval("ForeverKitChar.actions")
+    before = f'ForeverKitChar = {{ version = 2, settings = "old", actions = [==[{done}]==] }}'
+    assert login(before=before, personal=MACROS).eval("#macroList") == 0
+    edited = MACROS.replace("Holy Light", "Flash of Light")
+    e = login(before='macroList = { { name = "Heal", body = "old" } }', personal=edited).eval
+    assert e("#macroList") == 2 and e("macroList[1].body") == "/cast Flash of Light"
+
+
+def test_macros_wait_for_combat_to_end():
+    lua = login(before="inCombat = true", personal=MACROS)
+    assert lua.eval("#macroList") == 0
+    lua.execute("inCombat = false")
+    lua.globals().handler(None, "PLAYER_REGEN_ENABLED", None)
+    assert lua.eval("#macroList") == 2
+
+
+def test_auto_repair_turns_on_once_so_players_can_turn_it_off():
+    e = login(before='LeaPlusDB = { AutoRepairGear = "Off", keep = 1 }').eval
+    assert e("LeaPlusDB.AutoRepairGear") == "On" and e("LeaPlusDB.keep") == 1
+    e = login(before='LeaPlusDB = { AutoRepairGear = "Off" }; ForeverKitChar = { version = 2, seeded = { Leatrix_Plus = 1 } }').eval
+    assert e("LeaPlusDB.AutoRepairGear") == "Off"
+
+
+def test_party_stack_sits_left_of_and_above_a_larger_player_card():
+    e = login().eval
+    unit = 'EUICoreStandaloneUnitFramesDB.profiles.Default.addons.EUIStandaloneUnitFrames'
+    party = 'EUICoreStandaloneRaidFramesDB.profiles.Default.addons.EUIStandaloneRaidFrames'
+    width, height = e(f"{unit}.player.frameWidth"), e(f"{unit}.player.healthHeight") + e(f"{unit}.player.powerHeight")
+    assert e(f"{party}.partyFrameWidth") < width and e(f"{party}.partyFrameHeight") < height
+    x, y = e(f"{unit}.positions.player.x"), e(f"{unit}.positions.player.y")
+    left, top = x - (width + height) / 2, y + height / 2
+    assert e(f"{party}.partyUnlockPos.x") == left - 100 and e(f"{party}.partyUnlockPos.y") > top
+    assert e(f"{unit}.player.healthBarOpacity") < 100 and e(f"{party}.partyPortraitStyle") == "attached"
+
+
+def test_frames_keep_other_settings_and_use_the_active_profile():
+    before = """EUICoreStandaloneUnitFramesDB = { activeProfile = "Mine", profiles = { Mine = { addons = {
+      EUIStandaloneUnitFrames = { player = { showBuffs = true } } } } } }"""
+    e = login(before=before).eval
+    player = "EUICoreStandaloneUnitFramesDB.profiles.Mine.addons.EUIStandaloneUnitFrames.player"
+    assert e(f"{player}.showBuffs") is True and e(f"{player}.frameWidth") == 170
+
+
+def test_layout_version_bump_leaves_frames_alone():
+    before = 'ForeverKitChar = { version = 1, seeded = { EUIStandaloneUnitFrames = 1 } }'
+    assert login(before=before).eval("EUICoreStandaloneUnitFramesDB") is None
 
 
 if __name__ == "__main__":
