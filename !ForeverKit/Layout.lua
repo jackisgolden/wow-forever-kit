@@ -16,7 +16,7 @@ local MAP_HALF_WIDTH = 70
 
 local iconScale = ICON_SIZE / MAP_SCALE
 
-local CARD_WIDTH = 170
+local CARD_WIDTH = 210
 local CARD_HEIGHT = 26
 local CARD_POWER = 6
 local CARD_X = -317
@@ -83,7 +83,7 @@ ForeverKitLayout = {
 	-- EllesmereUI unit frames, used when those addons are installed. Positions
 	-- are measured from the screen center.
 	frames = {
-		version = 1,
+		version = 2,
 		player = card("left"),
 		target = card("right"),
 		positions = {
@@ -91,8 +91,10 @@ ForeverKitLayout = {
 			target = { point = "CENTER", relPoint = "CENTER", x = -CARD_X, y = CARD_Y },
 		},
 		party = {
-			partyFrameWidth = 110, partyFrameHeight = 24, partyHideSelf = true,
+			partyFrameWidth = 130, partyFrameHeight = 24, partyHideSelf = true,
 			partyFlipGrowth = true, healthBarOpacity = CARD_OPACITY,
+			healthColorMode = "class", healthBarTexture = "none",
+			healthTextMode = "percent", healthTextPosition = "right",
 			partyPortraitStyle = "attached", partyPortraitSide = "left",
 			partyUnlockPos = {
 				point = "BOTTOMLEFT", relPoint = "CENTER",

@@ -253,7 +253,7 @@ def test_frames_keep_other_settings_and_use_the_active_profile():
       EUIStandaloneUnitFrames = { player = { showBuffs = true } } } } } }"""
     e = login(before=before).eval
     player = "EUICoreStandaloneUnitFramesDB.profiles.Mine.addons.EUIStandaloneUnitFrames.player"
-    assert e(f"{player}.showBuffs") is True and e(f"{player}.frameWidth") == 170
+    assert e(f"{player}.showBuffs") is True and e(f"{player}.frameWidth") == 210
 
 
 def test_layout_version_bump_leaves_frames_alone():
