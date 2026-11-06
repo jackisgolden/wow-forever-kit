@@ -38,6 +38,8 @@ Enemies show health bars above their heads, and your gear repairs itself when yo
 
 Your health card and your party's cards sit near the middle of the screen, with your party stacked above and to the left. Type `/ft` for the threat meter, which shows who is closest to pulling aggro.
 
+Your spellbook has a tab listing every spell you can learn and what it costs. Your map shows trainers and vendors, and `/fv` sets which ones.
+
 [GUIDE.md](GUIDE.md) shows which job goes on which key, for any class.
 
 To reset your layout, or fit it to a new monitor, type `/forever` in chat.
